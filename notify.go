@@ -55,7 +55,8 @@ func Error(err error, action string) {
 
 	stdout(err.Error(), scope)
 
-	go getSlackClient().Notify(slack.Error(err.Error()), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Error(err.Error()), getSlackTags(scope))
 
 	sentry.WithScope(func(s *sentry.Scope) {
 		s.SetTags(getSentryTags(scope))
@@ -88,7 +89,8 @@ func ErrorRequest(err error, r *http.Request) {
 
 	stdout(err.Error(), scope)
 
-	go getSlackClient().Notify(slack.Error(err.Error()), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Error(err.Error()), getSlackTags(scope))
 
 	sentry.ConfigureScope(func(s *sentry.Scope) {
 		s.SetTags(getSentryTags(scope))
@@ -104,7 +106,8 @@ func Log(text string, tags []Tag) {
 
 	stdout(text, scope)
 
-	go getSlackClient().Notify(slack.Info(text), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Info(text), getSlackTags(scope))
 
 	sentry.WithScope(func(s *sentry.Scope) {
 		s.SetTags(getSentryTags(scope))
@@ -116,14 +119,16 @@ func Log(text string, tags []Tag) {
 func LogInfo(text string, scope *Scope) {
 	stdout(text, scope)
 
-	go getSlackClient().Notify(slack.Info(text), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Info(text), getSlackTags(scope))
 }
 
 // Slack and stdout warning message
 func LogWarning(text string, scope *Scope) {
 	stdout(text, scope)
 
-	go getSlackClient().Notify(slack.Warning(text), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Warning(text), getSlackTags(scope))
 }
 
 // Slack and stdout error message
@@ -134,7 +139,8 @@ func LogError(err error, scope *Scope) {
 
 	stdout(err.Error(), scope)
 
-	go getSlackClient().Notify(slack.Error(err.Error()), getSlackTags(scope))
+	slackClient := getSlackClient()
+	go slackClient.Notify(slack.Error(err.Error()), getSlackTags(scope))
 }
 
 func stdout(text string, scope *Scope) {
