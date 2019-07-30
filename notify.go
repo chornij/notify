@@ -54,7 +54,10 @@ func Error(err error, action string) {
 	client := getSlackClient()
 	client.Notify(slack.Error(err.Error()), getSlackTags(scope))
 
-	sentry.CaptureException(err)
+	sentry.WithScope(func(s *sentry.Scope) {
+		s.SetTags(getSentryTags(scope))
+		sentry.CaptureException(err)
+	})
 }
 
 // Notify error request
@@ -81,7 +84,10 @@ func ErrorRequest(err error, r *http.Request) {
 	client := getSlackClient()
 	client.Notify(slack.Error(err.Error()), getSlackTags(scope))
 
-	sentry.CaptureException(err)
+	sentry.ConfigureScope(func(s *sentry.Scope) {
+		s.SetTags(getSentryTags(scope))
+		sentry.CaptureException(err)
+	})
 }
 
 // Logging message with tags
@@ -95,10 +101,10 @@ func Log(text string, tags []Tag) {
 	client := getSlackClient()
 	client.Notify(slack.Info(text), getSlackTags(scope))
 
-	sentry.ConfigureScope(func(s *sentry.Scope) {
+	sentry.WithScope(func(s *sentry.Scope) {
 		s.SetTags(getSentryTags(scope))
+		sentry.CaptureMessage(text)
 	})
-	sentry.CaptureMessage(text)
 }
 
 // Slack and stdout info message
@@ -130,13 +136,6 @@ func stdout(text string, scope *Scope) {
 	v = append(v, text)
 
 	if scope != nil {
-		sentry.ConfigureScope(func(s *sentry.Scope) {
-			s.SetUser(sentry.User{
-				ID:        scope.device.ID,
-				IPAddress: scope.request.IP,
-			})
-		})
-
 		if scope.device != nil {
 			v = append(v, "Device ID: "+scope.device.ID)
 		} else if scope.request != nil {
@@ -211,6 +210,15 @@ func getSlackTags(scope *Scope) (tags []map[string]interface{}) {
 }
 
 func getSentryTags(scope *Scope) (tags map[string]string) {
+	if scope.device != nil && scope.request != nil {
+		sentry.ConfigureScope(func(s *sentry.Scope) {
+			s.SetUser(sentry.User{
+				ID:        scope.device.ID,
+				IPAddress: scope.request.IP,
+			})
+		})
+	}
+
 	tags = make(map[string]string)
 
 	if scope != nil {

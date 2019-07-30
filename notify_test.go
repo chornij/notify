@@ -3,19 +3,34 @@ package notify
 import (
 	"errors"
 	"github.com/chornij/env"
+	"github.com/getsentry/sentry-go"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 )
 
 func TestNotifyError(t *testing.T) {
 	env.TryLoad("./test.env")
 
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+	})
+	assert.NotEmpty(t, os.Getenv("SENTRY_DSN"))
+	assert.NoError(t, err)
+
 	Error(errors.New("some error"), "testing")
 }
 
 func TestNotifyErrorRequest(t *testing.T) {
 	env.TryLoad("./test.env")
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+	})
+	assert.NotEmpty(t, os.Getenv("SENTRY_DSN"))
+	assert.NoError(t, err)
 
 	r := http.Request{
 		Method: "POST",
