@@ -53,7 +53,7 @@ func Error(err error, action string) {
 		},
 	}
 
-	stdout(err.Error(), scope)
+	stdout(action+": "+err.Error(), scope)
 
 	slackClient := getSlackClient()
 	go slackClient.Notify(slack.Error(err.Error()), getSlackTags(scope))
